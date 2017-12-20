@@ -11,6 +11,9 @@ public class LongMapImpl<V> implements LongMap<V> {
     private IntFunction<V[]> arrayGenerator;
 
     public LongMapImpl(IntFunction<V[]> arrayGenerator) {
+        if (arrayGenerator == null) {
+            throw new IllegalArgumentException("Provide array generator to be able to retrieve values as array");
+        }
         this.arrayGenerator = arrayGenerator;
     }
 

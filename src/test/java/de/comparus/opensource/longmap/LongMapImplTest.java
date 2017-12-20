@@ -15,6 +15,7 @@ public class LongMapImplTest {
         // act
         map.put(1L, value0); //replaced by next
         map.put(2L, value2);
+        map.put(3L, null);
         TestObject replaced = map.put(1L, value1);
 
         // assert
@@ -22,6 +23,7 @@ public class LongMapImplTest {
         Assert.assertEquals("Old value should be returned when replacing by new one", value0, replaced);
         Assert.assertEquals(value1, map.get(1L));
         Assert.assertEquals(value2, map.get(2L));
+        Assert.assertNull(map.get(3L));
     }
 
     @Test
@@ -157,7 +159,7 @@ public class LongMapImplTest {
         map.put(1L, value);
 
         // expect
-        Assert.assertNotEquals(0, map.size());
+        Assert.assertEquals(1, map.size());
     }
 
     @Test(expected = Test.None.class)
