@@ -3,36 +3,37 @@ package de.comparus.opensource.longmap;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class LongMapTest {
+public class LongMapImplTest {
     @Test
-    public void add() {
+    public void put() {
         // given
-        LongMap<Object> map = new LongMapImpl<>();
-        Object value0 = new Object();
-        Object value1 = new Object();
-        Object value2 = new Object();
+        LongMap<TestObject> map = new LongMapImpl<>(TestObject[]::new);
+        TestObject value0 = new TestObject();
+        TestObject value1 = new TestObject();
+        TestObject value2 = new TestObject();
 
         // act
-        map.put(1L, value0);
+        map.put(1L, value0); //replaced by next
         map.put(2L, value2);
-        map.put(1L, value1); // replace
+        TestObject replaced = map.put(1L, value1);
 
         // assert
         Assert.assertFalse("Should be replaced by same key", map.containsValue(value0));
-        Assert.assertTrue(map.containsValue(value1));
-        Assert.assertTrue(map.containsValue(value2));
+        Assert.assertEquals("Old value should be returned when replacing by new one", value0, replaced);
+        Assert.assertEquals(value1, map.get(1L));
+        Assert.assertEquals(value2, map.get(2L));
     }
 
     @Test
     public void get() {
         // given
-        LongMap<Object> map = new LongMapImpl<>();
-        Object value = new Object();
+        LongMap<TestObject> map = new LongMapImpl<>(TestObject[]::new);
+        TestObject value = new TestObject();
         map.put(1L, value);
 
         // act
-        Object actual1 = map.get(1L);
-        Object actual2 = map.get(2L);
+        TestObject actual1 = map.get(1L);
+        TestObject actual2 = map.get(2L);
 
         // assert
         Assert.assertEquals(value, actual1);
@@ -42,13 +43,13 @@ public class LongMapTest {
     @Test
     public void remove() {
         // given
-        LongMap<Object> map = new LongMapImpl<>();
-        Object value = new Object();
+        LongMap<TestObject> map = new LongMapImpl<>(TestObject[]::new);
+        TestObject value = new TestObject();
         map.put(1L, value);
 
         // act
-        Object actual1 = map.remove(1L);
-        Object actual2 = map.remove(1L);
+        TestObject actual1 = map.remove(1L);
+        TestObject actual2 = map.remove(1L);
 
         // assert
         Assert.assertEquals("Removed object should be returned", value, actual1);
@@ -58,13 +59,13 @@ public class LongMapTest {
     @Test
     public void isEmpty() {
         // when
-        LongMap<Object> map = new LongMapImpl<>();
+        LongMap<TestObject> map = new LongMapImpl<>(TestObject[]::new);
 
         // expect
         Assert.assertTrue(map.isEmpty());
 
         // when
-        Object value = new Object();
+        TestObject value = new TestObject();
         map.put(1L, value);
 
         // expect
@@ -74,13 +75,13 @@ public class LongMapTest {
     @Test
     public void containsKey() {
         // when
-        LongMap<Object> map = new LongMapImpl<>();
+        LongMap<TestObject> map = new LongMapImpl<>(TestObject[]::new);
 
         // expect
         Assert.assertFalse(map.containsKey(1L));
 
         // when
-        Object value = new Object();
+        TestObject value = new TestObject();
         map.put(1L, value);
 
         // expect
@@ -90,8 +91,8 @@ public class LongMapTest {
     @Test
     public void containsValue() {
         // when
-        LongMap<Object> map = new LongMapImpl<>();
-        Object value = new Object();
+        LongMap<TestObject> map = new LongMapImpl<>(TestObject[]::new);
+        TestObject value = new TestObject();
 
         // expect
         Assert.assertFalse(map.containsValue(value));
@@ -106,7 +107,7 @@ public class LongMapTest {
     @Test
     public void keys() {
         // when
-        LongMap<Object> map = new LongMapImpl<>();
+        LongMap<TestObject> map = new LongMapImpl<>(TestObject[]::new);
         long[] actual1 = map.keys();
 
         // expect
@@ -114,7 +115,7 @@ public class LongMapTest {
         Assert.assertArrayEquals(expected1, actual1);
 
         // when
-        Object value = new Object();
+        TestObject value = new TestObject();
         map.put(1L, value);
         long[] actual2 = map.keys();
 
@@ -126,57 +127,62 @@ public class LongMapTest {
     @Test
     public void values() {
         // when
-        LongMap<Object> map = new LongMapImpl<>();
-        Object[] actual1 = map.values();
+        LongMap<TestObject> map = new LongMapImpl<>(TestObject[]::new);
+        TestObject[] actual1 = map.values();
 
         // expect
-        Object[] expected1 = new Object[0];
+        TestObject[] expected1 = new TestObject[0];
         Assert.assertArrayEquals(expected1, actual1);
 
         // when
-        Object value = new Object();
+        TestObject value = new TestObject();
         map.put(1L, value);
-        Object[] actual2 = map.values();
+        TestObject[] actual2 = map.values();
 
         // expect
-        Object[] expected2 = {value};
+        TestObject[] expected2 = {value};
         Assert.assertArrayEquals(expected2, actual2);
     }
 
     @Test
     public void size() {
         // when
-        LongMap<Object> map = new LongMapImpl<>();
+        LongMap<TestObject> map = new LongMapImpl<>(TestObject[]::new);
 
         // expect
         Assert.assertEquals(0, map.size());
 
         // when
-        Object value = new Object();
+        TestObject value = new TestObject();
         map.put(1L, value);
 
         // expect
         Assert.assertNotEquals(0, map.size());
     }
 
-    @Test
-    public void clear() {
+    @Test(expected = Test.None.class)
+    public void clearValuesIfAny() {
         // given
-        LongMap<Object> map = new LongMapImpl<>();
+        LongMap<TestObject> map = new LongMapImpl<>(TestObject[]::new);
 
-        // when
+        // act
         map.clear();
+    }
 
-        // expect exception is not thrown
-        Assert.assertTrue(map.isEmpty());
+    @Test
+    public void clearAllValues() {
+        // given
+        LongMap<TestObject> map = new LongMapImpl<>(TestObject[]::new);
+        TestObject value = new TestObject();
+        map.put(1L, value);
 
         // when
-        Object value = new Object();
-        map.put(1L, value);
         map.clear();
 
         // expect
         Assert.assertTrue(map.isEmpty());
     }
 
+    private class TestObject {
+    }
 }

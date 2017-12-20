@@ -1,43 +1,94 @@
 package de.comparus.opensource.longmap;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.IntFunction;
+
 public class LongMapImpl<V> implements LongMap<V> {
+    private List<LongValueContainer<V>> containers = new ArrayList<>();
+    private IntFunction<V[]> arrayGenerator;
+
+    public LongMapImpl(IntFunction<V[]> arrayGenerator) {
+        this.arrayGenerator = arrayGenerator;
+    }
+
     public V put(long key, V value) {
-        return null;
+        LongValueContainer<V> existent = findContainer(key);
+        if (existent == null) {
+            putNewContainer(key, value);
+            return null;
+        }
+        V oldValue = existent.getValue();
+        existent.setValue(value);
+        return oldValue;
     }
 
     public V get(long key) {
-        return null;
+        LongValueContainer<V> container = findContainer(key);
+        return container == null ? null : container.getValue();
     }
 
     public V remove(long key) {
-        return null;
+        int index = findIndex(key);
+        if (index < 0) {
+            return null;
+        }
+        LongValueContainer<V> removed = containers.remove(index);
+        return removed.getValue();
     }
 
     public boolean isEmpty() {
-        return false;
+        return containers.isEmpty();
     }
 
     public boolean containsKey(long key) {
-        return false;
+        return findIndex(key) >= 0;
     }
 
     public boolean containsValue(V value) {
-        return false;
+        return containers.stream()
+                .filter(container -> Objects.equals(container.getValue(), value))
+                .findAny()
+                .isPresent();
     }
 
     public long[] keys() {
-        return null;
+        return containers.stream()
+                .mapToLong(LongValueContainer::getKey)
+                .toArray();
     }
 
     public V[] values() {
-        return null;
+        return containers.stream()
+                .map(LongValueContainer::getValue)
+                .toArray(arrayGenerator);
     }
 
     public long size() {
-        return 0;
+        return containers.size();
     }
 
     public void clear() {
-
+        containers.clear();
     }
+
+    private LongValueContainer<V> findContainer(long key) {
+        int index = findIndex(key);
+        if (index < 0) {
+            return null;
+        }
+        return containers.get(index);
+    }
+
+    private int findIndex(long key) {
+        return  Collections.binarySearch(containers, LongValueContainer.forKeyComparing(key), LongValueContainer.keyComparator);
+    }
+
+    private void putNewContainer(long key, V value) {
+        containers.add(new LongValueContainer<>(key, value));
+        containers.sort(LongValueContainer.keyComparator);
+    }
+
 }
