@@ -19,8 +19,9 @@ public class LongMapImplPerformanceTest {
         LinkedList<TestObject> values = new LinkedList<>();
 
         int iterrationsCount = 10000;
+        Random random = new Random();
         for (int i = 0; i < iterrationsCount; i++) {
-            long key = new Random().nextLong();
+            long key = random.nextLong();
             keys.addFirst(key);
 
             TestObject value = new TestObject();
