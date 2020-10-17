@@ -1,6 +1,8 @@
 package de.comparus.opensource.longmap;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -164,7 +166,8 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
     return array;
   }
-
+  
+  
   public V[] values() {
     List<V> list = new ArrayList<>();
     for (Node<V> vNode : table) {
@@ -174,9 +177,9 @@ public class LongMapImpl<V> implements LongMap<V> {
         node = node.next;
       }
     }
-
+    
     @SuppressWarnings("unchecked")
-    V[] result = (V[]) Array.newInstance(list.get(0).getClass(), list.size());
+    V[] result = (V[]) Array.newInstance(getNotNullValue(list).getClass(), list.size());
     for (int i = 0; i < list.size(); i++) {
       result[i] = list.get(i);
     }
@@ -209,7 +212,16 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
     return sj.toString();
   }
-
+  
+  private V getNotNullValue(List<V> list) {
+    for (int i = 0; i < list.size(); i++) {
+      if (list.get(i) != null) {
+        return list.get(i);
+      }
+    }
+    return null;
+  }
+  
   private boolean containsNullValue() {
     Node<V>[] tab = getTable();
 
