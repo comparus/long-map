@@ -56,55 +56,55 @@ public class LongMapImpl<V> implements LongMap<V> {
   }
 
   public V put(long key, V value) {
-    int h = hash(key);
-    Node<V>[] node = getTable();
+    int hash = hash(key);
+    Node<V>[] table = getTable();
 
-    for (Node<V> n = node[h]; n != null; n = n.next) {
-      if (h == n.hash && key == n.key) {
-        V oldValue = n.value;
+    for (Node<V> node = table[hash]; node != null; node = node.next) {
+      if (hash == node.hash && key == node.key) {
+        V oldValue = node.value;
 
         if (value != oldValue) {
-          n.value = value;
+          node.value = value;
         }
 
         return oldValue;
       }
     }
-    Node<V> n = node[h];
-    node[h] = new Node<>(h, key, value, n);
+    Node<V> node = table[hash];
+    table[hash] = new Node<>(hash, key, value, node);
 
     if (++size >= threshold) {
-      resize(node.length * 2);
+      resize(table.length * 2);
     }
     return value;
   }
 
   public V get(long key) {
 
-    int h = hash(key);
-    Node<V>[] tab = getTable();
-    Node<V> n = tab[h];
-    while (n != null) {
-      if (n.hash == h && key == n.key) {
-        return n.value;
+    int hash = hash(key);
+    Node<V>[] table = getTable();
+    Node<V> node = table[hash];
+    while (node != null) {
+      if (node.hash == hash && key == node.key) {
+        return node.value;
       }
-      n = n.next;
+      node = node.next;
     }
     return null;
   }
 
   public V remove(long key) {
-    int h = hash(key);
-    Node<V>[] tab = getTable();
-    Node<V> prev = tab[h];
+    int hash = hash(key);
+    Node<V>[] table = getTable();
+    Node<V> prev = table[hash];
     Node<V> node = prev;
 
     while (node != null) {
       Node<V> next = node.next;
-      if (h == node.hash && node.key == key) {
+      if (hash == node.hash && node.key == key) {
         size--;
         if (prev == node) {
-          tab[h] = next;
+          table[hash] = next;
         } else {
           prev.next = next;
         }
@@ -124,8 +124,8 @@ public class LongMapImpl<V> implements LongMap<V> {
     Node<V>[] tab = getTable();
 
     for (int i = 0; i < tab.length; i++) {
-      for (Node<V> n = tab[i]; n != null; n = n.next) {
-        if (key == n.key) {
+      for (Node<V> node = tab[i]; node != null; node = node.next) {
+        if (key == node.key) {
           return true;
         }
       }
@@ -141,8 +141,8 @@ public class LongMapImpl<V> implements LongMap<V> {
     Node<V>[] tab = getTable();
 
     for (int i = 0; i < tab.length; i++) {
-      for (Node<V> n = tab[i]; n != null; n = n.next) {
-        if (value.equals(n.value)) {
+      for (Node<V> node = tab[i]; node != null; node = node.next) {
+        if (value.equals(node.value)) {
           return true;
         }
       }
@@ -160,11 +160,11 @@ public class LongMapImpl<V> implements LongMap<V> {
       }
     }
 
-    long[] array = new long[list.size()];
+    long[] result = new long[list.size()];
     for (int i = 0; i < list.size(); i++) {
-      array[i] = list.get(i);
+      result[i] = list.get(i);
     }
-    return array;
+    return result;
   }
   
   
@@ -202,15 +202,15 @@ public class LongMapImpl<V> implements LongMap<V> {
 
   @Override
   public String toString() {
-    StringJoiner sj = new StringJoiner(System.lineSeparator());
+    StringJoiner result = new StringJoiner(System.lineSeparator());
 
     Node<V>[] tab = getTable();
     for (int i = 0; i < tab.length; i++) {
       for (Node<V> n = tab[i]; n != null; n = n.next) {
-        sj.add(n.toString());
+        result.add(n.toString());
       }
     }
-    return sj.toString();
+    return result.toString();
   }
   
   private V getNotNullValue(List<V> list) {
@@ -226,8 +226,8 @@ public class LongMapImpl<V> implements LongMap<V> {
     Node<V>[] tab = getTable();
 
     for (int i = tab.length - 1; i > 0; i--) {
-      for (Node<V> n = tab[i]; n != null; n = n.next) {
-        if (n.value == null) {
+      for (Node<V> node = tab[i]; node != null; node = node.next) {
+        if (node.value == null) {
           return true;
         }
       }
@@ -262,19 +262,19 @@ public class LongMapImpl<V> implements LongMap<V> {
 
   private void transfer(Node<V>[] src, Node<V>[] dest) {
     for (int i = 0; i < src.length; i++) {
-      Node<V> n = src[i];
+      Node<V> node = src[i];
       src[i] = null;
-      while (n != null) {
-        Node<V> next = n.next;
-        if (n.key == null) {
-          n.next = null;
-          n.value = null;
+      while (node != null) {
+        Node<V> next = node.next;
+        if (node.key == null) {
+          node.next = null;
+          node.value = null;
           size--;
         } else {
-          n.next = dest[n.hash];
-          dest[n.hash] = n;
+          node.next = dest[node.hash];
+          dest[node.hash] = node;
         }
-        n = next;
+        node = next;
       }
     }
   }
@@ -301,28 +301,31 @@ public class LongMapImpl<V> implements LongMap<V> {
       this.next = next;
     }
 
-    public final Long getKey() {
+    public Long getKey() {
       return key;
     }
 
-    public final V getValue() {
+    public V getValue() {
       return value;
     }
-
-    public final String toString() {
+    
+    @Override
+    public String toString() {
       return key + "=" + value;
     }
-
-    public final int hashCode() {
+    
+    @Override
+    public int hashCode() {
       return Objects.hashCode(key) ^ Objects.hashCode(value);
     }
-
-    public final boolean equals(Object o) {
-      if (o == this)
+    
+    @Override
+    public boolean equals(Object object) {
+      if (object == this)
         return true;
-      if (o instanceof Node) {
-        Node<?> n = (Node<?>) o;
-        if (Objects.equals(key, n.getKey()) && Objects.equals(value, n.getValue())) {
+      if (object instanceof Node) {
+        Node<?> node = (Node<?>) object;
+        if (Objects.equals(key, node.getKey()) && Objects.equals(value, node.getValue())) {
           return true;
         }
       }
