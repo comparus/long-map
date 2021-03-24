@@ -1,2 +1,3 @@
-.idea/
-long-map.iml
+.idea/*
+*.iml
+target/*
