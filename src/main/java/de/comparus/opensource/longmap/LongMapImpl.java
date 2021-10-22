@@ -68,7 +68,6 @@ public class LongMapImpl<V> implements LongMap<V> {
             V temp = node.value;
             node = node.next;
             size--;
-            //node = null;
             return temp;
         }
         return searchInNext(key);
