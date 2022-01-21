@@ -5,8 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
-
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -22,6 +20,15 @@ public class LongMapImplTest {
     public void put_validBehavior_ok() {
         String expected = "first value";
         String actual = map.put(1L, expected);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void put_collision_ok() {
+        String expected = "third value";
+        map.put(1L, "first value");
+        map.put(17L, "second value");
+        String actual = map.put(33L, expected);
         assertEquals(expected, actual);
     }
 
