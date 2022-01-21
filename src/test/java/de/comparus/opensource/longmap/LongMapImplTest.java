@@ -5,6 +5,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,6 +16,11 @@ public class LongMapImplTest {
     @Before
     public void initializeMap() {
         map = new LongMapImpl<>();
+    }
+
+    @After
+    public void destroyMap() {
+        System.gc();
     }
 
     @Test
