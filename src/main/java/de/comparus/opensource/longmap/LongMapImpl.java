@@ -17,7 +17,7 @@ public class LongMapImpl<V> implements LongMap<V> {
 
     public V put(long key, V value) {
         Entry<V>[] table = this.table;
-        int index = indexFor((int) key, table.length);
+        int index = indexFor((int) key);
 
         for (Entry<V> e = table[index]; e != null; e = e.next) {
             if (e.getKey() == key) {
@@ -35,7 +35,7 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
 
     public V get(long key) {
-        int index = indexFor((int) key, table.length);
+        int index = indexFor((int) key);
         for (Entry<V> e = table[index]; e != null; e = e.next) {
             if (e.getKey() == key) {
                 return e.getValue();
@@ -45,7 +45,7 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
 
     public V remove(long key) {
-        int index = indexFor((int) key, table.length);
+        int index = indexFor((int) key);
         Entry<V> prev = null;
         Entry<V> e = table[index];
         while (e != null) {
@@ -69,7 +69,7 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
 
     public boolean containsKey(long key) {
-        int index = indexFor((int) key, table.length);
+        int index = indexFor((int) key);
         for (Entry<V> e = table[index]; e != null; e = e.next) {
             if (e.getKey() == key) {
                 return true;
@@ -132,8 +132,8 @@ public class LongMapImpl<V> implements LongMap<V> {
         size = 0;
     }
 
-    private int indexFor(int hash, int length) {
-        return hash & (length - 1);
+    private int indexFor(int hash) {
+        return Math.abs(hash);
     }
 
     private void resize(int newCapacity) {
@@ -142,7 +142,7 @@ public class LongMapImpl<V> implements LongMap<V> {
         for (int i = 0; i < table.length; i++) {
             Entry<V> entry = table[i];
             while (entry != null) {
-                int newIndex = indexFor((int) entry.getKey(), newCapacity);
+                int newIndex = indexFor((int)entry.getKey());
                 Entry<V> next = entry.next;
 
                 entry.next = newTable[newIndex];
