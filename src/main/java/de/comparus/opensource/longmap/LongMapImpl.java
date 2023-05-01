@@ -16,26 +16,33 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
 
     public V put(long key, V value) {
-        Entry<V>[] table = this.table;
         int index = indexFor((int) key);
-
+        if (index >= table.length) {
+            resize(index * 2);
+        }
+        Entry<V>[] table = this.table;
         for (Entry<V> e = table[index]; e != null; e = e.next) {
             if (e.getKey() == key) {
+                V oldValue = e.value;
                 e.value = value;
-                return null;
+                return oldValue;
             }
         }
-
-        Entry<V> e = table[index];
-        table[index] = new Entry<>(key, value, e);
         if (++size > capacity) {
             resize(table.length * 2);
+            table = this.table;
+            index = indexFor((int) key);
         }
+        Entry<V> e = table[index];
+        table[index] = new Entry<>(key, value, e);
         return null;
     }
 
     public V get(long key) {
         int index = indexFor((int) key);
+        if (index > table.length) {
+            return null;
+        }
         for (Entry<V> e = table[index]; e != null; e = e.next) {
             if (e.getKey() == key) {
                 return e.getValue();
@@ -46,6 +53,9 @@ public class LongMapImpl<V> implements LongMap<V> {
 
     public V remove(long key) {
         int index = indexFor((int) key);
+        if (index > table.length) {
+            return null;
+        }
         Entry<V> prev = null;
         Entry<V> e = table[index];
         while (e != null) {
@@ -70,6 +80,9 @@ public class LongMapImpl<V> implements LongMap<V> {
 
     public boolean containsKey(long key) {
         int index = indexFor((int) key);
+        if (index > table.length) {
+            return false;
+        }
         for (Entry<V> e = table[index]; e != null; e = e.next) {
             if (e.getKey() == key) {
                 return true;
@@ -138,11 +151,10 @@ public class LongMapImpl<V> implements LongMap<V> {
 
     private void resize(int newCapacity) {
         Entry<V>[] newTable = new Entry[newCapacity];
-
-        for (int i = 0; i < table.length; i++) {
-            Entry<V> entry = table[i];
+        for (Entry<V> vEntry : table) {
+            Entry<V> entry = vEntry;
             while (entry != null) {
-                int newIndex = indexFor((int)entry.getKey());
+                int newIndex = indexFor((int) entry.getKey());
                 Entry<V> next = entry.next;
 
                 entry.next = newTable[newIndex];
@@ -151,9 +163,8 @@ public class LongMapImpl<V> implements LongMap<V> {
                 entry = next;
             }
         }
-
         table = newTable;
-        capacity = (int) (newCapacity);
+        capacity = newCapacity;
     }
 
     private static class Entry<V> {

@@ -20,14 +20,21 @@ public class LongMapImplTest {
         map.put(3, "three");
         map.put(-4, "minus four");
         map.put(-1, "minus one");
+        map.put(20, "twenty");
+        map.put(50, "fifty");
+        map.put(-500, "minus five hundred");
 
         assertEquals("one", map.get(1));
         assertEquals("two", map.get(2));
         assertEquals("three", map.get(3));
         assertEquals("minus one", map.get(-1));
         assertEquals("minus four", map.get(-4));
-        assertEquals(5, map.size());
+        assertEquals("twenty", map.get(20));
+        assertEquals("fifty", map.get(50));
+        assertEquals("minus five hundred", map.get(-500));
+        assertEquals(8, map.size());
         assertNull(map.get(5));
+        assertNull(map.get(500));
     }
 
     @Test
@@ -40,6 +47,7 @@ public class LongMapImplTest {
         assertNull(map.get(2));
         assertEquals(2, map.size());
         assertNull(map.remove(4));
+        assertNull(map.remove(500));
     }
 
     @Test
@@ -63,6 +71,7 @@ public class LongMapImplTest {
         assertTrue(map.containsKey(2));
         assertTrue(map.containsKey(3));
         assertFalse(map.containsKey(4));
+        assertFalse(map.containsKey(500));
     }
 
     @Test
