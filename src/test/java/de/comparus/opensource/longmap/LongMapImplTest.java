@@ -95,12 +95,18 @@ public class LongMapImplTest {
         map.put(1, "one");
         map.put(2, "two");
         map.put(3, "three");
+        map.put(-1, "minus one");
+        map.put(-2, "minus two");
+        map.put(-3, "minus three");
 
         long[] keys = map.keys();
-        assertEquals(3, keys.length);
-        assertEquals(1, keys[0]);
-        assertEquals(2, keys[1]);
-        assertEquals(3, keys[2]);
+        assertEquals(6, keys.length);
+        assertEquals(-1, keys[0]);
+        assertEquals(1, keys[1]);
+        assertEquals(-2, keys[2]);
+        assertEquals(2, keys[3]);
+        assertEquals(-3, keys[4]);
+        assertEquals(3, keys[5]);
     }
 
     @Test
@@ -108,13 +114,19 @@ public class LongMapImplTest {
         map.put(1, "one");
         map.put(2, "two");
         map.put(3, "three");
+        map.put(-1, "minus one");
+        map.put(-2, "minus two");
+        map.put(-3, "minus three");
         map.put(10, null);
 
         Object[] values = map.values();
-        assertEquals(4, values.length);
-        assertEquals("one", values[0]);
-        assertEquals("two", values[1]);
-        assertEquals("three", values[2]);
-        assertNull(values[3]);
+        assertEquals(7, values.length);
+        assertEquals("minus one", values[0]);
+        assertEquals("one", values[1]);
+        assertEquals("minus two", values[2]);
+        assertEquals("two", values[3]);
+        assertEquals("minus three", values[4]);
+        assertEquals("three", values[5]);
+        assertNull(values[6]);
     }
 }

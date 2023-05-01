@@ -185,17 +185,5 @@ public class LongMapImpl<V> implements LongMap<V> {
         public V getValue() {
             return value;
         }
-
-        public void setValue(V value) {
-            this.value = value;
-        }
-
-        public Entry<V> getNext() {
-            return next;
-        }
-
-        public void setNext(Entry<V> next) {
-            this.next = next;
-        }
     }
 }
