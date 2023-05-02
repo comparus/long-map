@@ -1,5 +1,7 @@
 package de.comparus.opensource.longmap;
 
+import java.util.Map;
+
 public interface LongMap<V> {
     V put(long key, V value);
     V get(long key);
