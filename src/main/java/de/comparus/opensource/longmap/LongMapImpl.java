@@ -19,9 +19,6 @@ public class LongMapImpl<V> implements LongMap<V> {
 
     /**
      * Constructs a new map with the given LongMap.
-     * Initial capacity - 16.
-     * Load factor - 0.75.
-     * @throws NullPointerException – if the given longMap is null.
      */
     public LongMapImpl(LongMap<? extends V> longMap) {
         this((int) (2*longMap.size()), 0.75f);
@@ -45,7 +42,7 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
 
     /**
-     * If number of keys in the hashtable exceeds threshold
+     * If number of keys in the table exceeds threshold
      * method recalculates the index of every key in the table.
      */
     @Override
@@ -102,7 +99,7 @@ public class LongMapImpl<V> implements LongMap<V> {
      * Resizes table and increases the capacity of table.
      * Recalculates the index of every key in order to make map operations more efficient.
      * This method is called automatically when the
-     * number of keys in the hashtable exceeds threshold.
+     * number of keys in the table exceeds threshold.
      */
     private void resize() {
         int oldSize = this.table.length;
