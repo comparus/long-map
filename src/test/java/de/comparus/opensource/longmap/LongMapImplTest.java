@@ -186,71 +186,76 @@ public class LongMapImplTest {
     @Test
     public void putAll_Test() {
         longMap = new LongMapImpl<>();
-        longMap.put(10000000002l, "Str2");
+        longMap.put(10000000007l, "Str7");
         LongMapImpl<String> insertLongMap = new LongMapImpl<>();
-        insertLongMap.put(10000000001l, "Str");
-        insertLongMap.put(10000000003l, "Str3");
-        insertLongMap.put(10000000007l, "Str7");
+        insertLongMap.put(10000000008l, "Str8");
+        insertLongMap.put(10000000009l, "Str9");
+        insertLongMap.put(100000000010l, "Str10");
 
         assert longMap.size() == 1;
         longMap.putAll(insertLongMap);
         assert longMap.size() == 4;
+        assert longMap.get(10000000007l).equals("Str7");
+        assert longMap.get(10000000008l).equals("Str8");
+        assert longMap.get(10000000009l).equals("Str9");
+        assert longMap.get(100000000010l).equals("Str10");
     }
 
     @Test
     public void putAllDuplicate_Test() {
         longMap = new LongMapImpl<>();
-        longMap.put(10000000001l, "Str1");
+        longMap.put(10000000007l, "Str7");
         LongMapImpl<String> insertLongMap = new LongMapImpl<>();
-        insertLongMap.put(10000000001l, "Str");
-        insertLongMap.put(10000000003l, "Str3");
-        insertLongMap.put(10000000007l, "Str7");
+        insertLongMap.put(10000000007l, "Str77");
+        insertLongMap.put(10000000008l, "Str8");
+        insertLongMap.put(10000000009l, "Str9");
 
         assert longMap.size() == 1;
         longMap.putAll(insertLongMap);
         assert longMap.size() == 3;
+        assert longMap.get(10000000007l).equals("Str77");
+        assert longMap.get(10000000008l).equals("Str8");
+        assert longMap.get(10000000009l).equals("Str9");
     }
 
     @Test
     public void mapValueConstructor_Test() {
         LongMapImpl<String> insertLongMap = new LongMapImpl<>();
-        insertLongMap.put(10000000001l, "Str");
-        insertLongMap.put(10000000003l, "Str3");
         insertLongMap.put(10000000007l, "Str7");
+        insertLongMap.put(10000000008l, "Str8");
+        insertLongMap.put(10000000009l, "Str9");
 
         longMap = new LongMapImpl<>(insertLongMap);
-        longMap.put(10000000002l, "Str2");
+        longMap.put(100000000010l, "Str10");
 
         assert longMap.size() == 4;
-        assert longMap.get(10000000002l) == "Str2";
-        assert longMap.get(10000000001l) == "Str";
-        assert longMap.get(10000000003l) == "Str3";
         assert longMap.get(10000000007l) == "Str7";
+        assert longMap.get(10000000008l) == "Str8";
+        assert longMap.get(10000000009l) == "Str9";
+        assert longMap.get(100000000010l) == "Str10";
     }
 
     @Test
     public void mapValueConstructorDuplicate_Test() {
         LongMapImpl<String> insertLongMap = new LongMapImpl<>();
-        insertLongMap.put(10000000001l, "Str");
-        insertLongMap.put(10000000003l, "Str3");
         insertLongMap.put(10000000007l, "Str7");
+        insertLongMap.put(10000000008l, "Str8");
+        insertLongMap.put(10000000009l, "Str9");
 
         longMap = new LongMapImpl<>(insertLongMap);
-        longMap.put(10000000003l, "Str2");
+        longMap.put(10000000009l, "Str99");
 
         assert longMap.size() == 3;
-        assert longMap.get(10000000003l) == "Str2";
-        assert longMap.get(10000000001l) == "Str";
         assert longMap.get(10000000007l) == "Str7";
+        assert longMap.get(10000000008l) == "Str8";
+        assert longMap.get(10000000009l) == "Str99";
     }
 
     @Test
     public void toString_Test() {
         longMap.put(10000000001l, "Str");
-        longMap.put(10000000003l, "Str1");
-        longMap.put(10000000007l, "Str7");
 
-        String result = "{10000000007=Str7, 10000000001=Str, 10000000003=Str1}";
+        String result = "{10000000001=Str}";
 
         assert longMap.toString().equals(result);
     }
