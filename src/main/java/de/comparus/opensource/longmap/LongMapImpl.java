@@ -132,6 +132,9 @@ public class LongMapImpl<V> implements LongMap<V> {
         }
     }
 
+    /**
+     * @return null if the key is not found in the table
+     */
     @Override
     public V get(long key) {
         int index = calculateIndex(key);
