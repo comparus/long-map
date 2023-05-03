@@ -43,7 +43,8 @@ public class LongMapImpl<V> implements LongMap<V> {
 
     /**
      * If number of keys in the table exceeds threshold
-     * method recalculates the index of every key in the table.
+     * method increases the table size to (oldSize * 2) 
+     * and recalculates the index of every key in the table.
      */
     @Override
     public V put(long key, V value) {
@@ -76,7 +77,7 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
 
     /**
-     * Copies all the entries from the longMap map to this table.
+     * Copies all the entries from the longMap to this table.
      */
     public void putAll(LongMap<? extends V> longMap) {
         if (longMap != null) {
@@ -96,7 +97,7 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
 
     /**
-     * Resizes table and increases the capacity of table.
+     * Resizes table and increases the capacity of table to (oldSize * 2).
      * Recalculates the index of every key in order to make map operations more efficient.
      * This method is called automatically when the
      * number of keys in the table exceeds threshold.
