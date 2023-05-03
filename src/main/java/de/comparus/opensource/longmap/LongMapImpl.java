@@ -133,6 +133,8 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
 
     /**
+     * Searches for value by key in a table.
+     * @return a value if the key is present in the table
      * @return null if the key is not found in the table
      */
     @Override
