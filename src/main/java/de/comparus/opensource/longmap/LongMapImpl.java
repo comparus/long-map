@@ -269,6 +269,7 @@ public class LongMapImpl<V> implements LongMap<V> {
 
     @Override
     public String toString() {
+        int capacity = count;
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("{");
         for (int i = table.length; i-- > 0;) {
@@ -276,10 +277,11 @@ public class LongMapImpl<V> implements LongMap<V> {
                 stringBuilder.append(entry.toString());
                 stringBuilder.append(", ");
                 entry = entry.next;
-                if (i - 1 == 0 && entry == null)
-                    return stringBuilder.replace(stringBuilder.length()-2, stringBuilder.length(), "")
-                            .append("}").toString();
+                capacity--;
             }
+            if (capacity == 0 && stringBuilder.length() > 1)
+                return stringBuilder.replace(stringBuilder.length()-2, stringBuilder.length(), "")
+                        .append("}").toString();
         }
         return "{}";
     }
