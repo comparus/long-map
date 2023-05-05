@@ -147,6 +147,15 @@ public class LongMapImplBasicTest {
     }
 
     @Test
+    public void when_contains_null_value_then_return_true() {
+        instance.put(100L, null);
+        assertTrue(instance.containsValue(null));
+
+        instance.put(100L, "val");
+        assertFalse(instance.containsValue(null));
+    }
+
+    @Test
     public void when_get_keys_then_return_correct_keys_array() {
 
         long[] expectedKeys = Arrays.stream(putRandom(40)).sorted().toArray();

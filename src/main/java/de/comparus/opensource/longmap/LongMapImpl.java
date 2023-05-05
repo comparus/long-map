@@ -5,8 +5,16 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Objects;
 
+/**
+ * Since Arrays have int based index - it is not possible to accommodate all possible range of long keys into such.
+ * Thus, internal storage is bounded to Integer.MAX_VALUE - 8 max size.
+ * Also since keys() and values() return an array this implementation should only be capable of storing a subset of long keys range.
+ * In case max size is exceeded - an exception is thrown upon attempt to put new key value pairs.
+ * This implementation is not thread safe.
+ */
 public class LongMapImpl<V> implements LongMap<V>, Iterable<LongMapImpl<V>.LongBucket<V>> {
 
+    /*https://stackoverflow.com/questions/3038392/do-java-arrays-have-a-maximum-size*/
     private static final int ARRAY_MAX_SIZE = Integer.MAX_VALUE - 8;
     private static final int DEFAULT_CAPACITY = 8;
     private static final float DEFAULT_LOAD_FACTOR = 0.75f;
@@ -47,9 +55,94 @@ public class LongMapImpl<V> implements LongMap<V>, Iterable<LongMapImpl<V>.LongB
         return currentBucket.put(key, value);
     }
 
-    private boolean isThresholdExceeded(long key) {
-        return !containsKey(key)
-                && (buckets.length == 0 || (int) (buckets.length * loadFactor) <= bucketCount);
+    @Override
+    public V get(long key) {
+        int index = getIndex(key);
+        return buckets[index] == null
+                ? null
+                : buckets[index].get(key);
+    }
+
+    @Override
+    public V remove(long key) {
+        int index = getIndex(key);
+
+        LongBucket<V> currentBucket = buckets[index];
+        if (currentBucket != null) {
+            if (currentBucket.getKey() == key) {
+                V result = currentBucket.getValue();
+                buckets[index] = currentBucket.getCollision();
+                bucketCount--;
+                return result;
+            } else {
+                return currentBucket.remove(key);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return bucketCount == 0;
+    }
+
+    @Override
+    public boolean containsKey(long key) {
+        return get(key) != null;
+    }
+
+    @Override
+    public boolean containsValue(V value) {
+        for (LongBucket<V> bucket : this) {
+            if (bucket.getValue() == value || (bucket.getValue() != null && bucket.getValue().equals(value))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public V[] values() {
+        if (bucketCount == 0) {
+            //impossible to instantiate a generic array since element type is not known at runtime
+            return null;
+        }
+        V[] values = (V[]) Array.newInstance(this.iterator().next().getValue().getClass(), bucketCount);
+        int valueIndex = bucketCount;
+        for (LongBucket<V> bucket : this) {
+            values[--valueIndex] = bucket.getValue();
+        }
+        return values;
+    }
+
+    @Override
+    public long[] keys() {
+        if (bucketCount == 0) {
+            //just to stay consistent with values()
+            return null;
+        }
+        long[] keys = new long[bucketCount];
+        int keyIndex = bucketCount;
+        for (LongBucket<V> bucket : this) {
+            keys[--keyIndex] = bucket.getKey();
+        }
+        return keys;
+    }
+
+    @Override
+    public long size() {
+        return bucketCount;
+    }
+
+    @Override
+    public void clear() {
+        Arrays.fill(buckets, null);
+        bucketCount = 0;
+    }
+
+    @Override
+    public Iterator<LongBucket<V>> iterator() {
+        return new CollisionAwareLongBucketIterator();
     }
 
     private void resize() {
@@ -77,7 +170,11 @@ public class LongMapImpl<V> implements LongMap<V>, Iterable<LongMapImpl<V>.LongB
         this.buckets = newBuckets;
     }
 
-    int getNewSize() {
+    private int getIndex(long key) {
+        return getIndex(key, buckets);
+    }
+
+    private int getNewSize() {
         if (buckets.length == 0) {
             return DEFAULT_CAPACITY;
         }
@@ -86,103 +183,25 @@ public class LongMapImpl<V> implements LongMap<V>, Iterable<LongMapImpl<V>.LongB
                 : ARRAY_MAX_SIZE;
     }
 
-    public V get(long key) {
-        int index = getIndex(key);
-        return buckets[index] == null
-                ? null
-                : buckets[index].get(key);
-    }
-
-    public V remove(long key) {
-        int index = getIndex(key);
-
-        LongBucket<V> currentBucket = buckets[index];
-        if (currentBucket != null) {
-            if (currentBucket.getKey() == key) {
-                V result = currentBucket.getValue();
-                buckets[index] = currentBucket.getCollision();
-                bucketCount--;
-                return result;
-            } else {
-                return currentBucket.remove(key);
-            }
-        }
-        return null;
-    }
-
-    public boolean isEmpty() {
-        return bucketCount == 0;
-    }
-
-    public boolean containsKey(long key) {
-        return get(key) != null;
-    }
-
-    public boolean containsValue(V value) {
-        for (LongBucket<V> bucket : this) {
-            if (bucket.getValue() == value || (bucket.getValue() != null && bucket.getValue().equals(value))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public long[] keys() {
-        if (bucketCount == 0) {
-            //just to stay consistent with values()
-            return null;
-        }
-        long[] keys = new long[bucketCount];
-        int keyIndex = bucketCount;
-        for (LongBucket<V> bucket : this) {
-            keys[--keyIndex] = bucket.getKey();
-        }
-        return keys;
-    }
-
-    public V[] values() {
-        if (bucketCount == 0) {
-            //impossible to instantiate a generic array since element type is not known at runtime
-            return null;
-        }
-        V[] values = (V[]) Array.newInstance(this.iterator().next().getValue().getClass(), bucketCount);
-        int valueIndex = bucketCount;
-        for (LongBucket<V> bucket : this) {
-            values[--valueIndex] = bucket.getValue();
-        }
-        return values;
-    }
-
-    public long size() {
-        return bucketCount;
-    }
-
-    public void clear() {
-        Arrays.fill(buckets, null);
-        bucketCount = 0;
-    }
-
-    private int getIndex(long key) {
-        return getIndex(key, buckets);
+    private boolean isThresholdExceeded(long key) {
+        return !containsKey(key)
+                && (buckets.length == 0 || (int) (buckets.length * loadFactor) <= bucketCount);
     }
 
     private int getIndex(long key, LongBucket<V>[] storage) {
         return (Long.hashCode(key) & 0x7FFFFFFF) % storage.length;
     }
 
-    int getCapacity() {
-        return buckets.length;
-    }
-
-    @Override
-    public Iterator<LongBucket<V>> iterator() {
-        return new CollisionAwareLongBucketIterator();
-    }
-
+    /**
+     * A collision aware iterator which navigates either through bucket storage
+     * or down the collision linked list if available.
+     * It does not track concurrent modifications, so in case of concurrent storage modification it
+     * may produce unexpected results.
+     */
     class CollisionAwareLongBucketIterator implements Iterator<LongBucket<V>> {
+
         private LongBucket<V> next;
         private int currentIndex = 0;
-
         public CollisionAwareLongBucketIterator() {
             next = getNext();
         }
@@ -216,13 +235,18 @@ public class LongMapImpl<V> implements LongMap<V>, Iterable<LongMapImpl<V>.LongB
             }
             return null;
         }
+
     }
 
+    /**
+     * Represents a key-value pair.
+     * Also keeps a link to downstream collision if any and delegates to it in case of key mismatch for e.g. put(), get() operations
+     */
     class LongBucket<T> {
+
         private final long key;
         private T value;
         private LongBucket<T> collision;
-
         private LongBucket(long key, T value) {
             this.key = key;
             this.value = value;
@@ -236,16 +260,18 @@ public class LongMapImpl<V> implements LongMap<V>, Iterable<LongMapImpl<V>.LongB
             return value;
         }
 
+        public final void setValue(T newValue) {
+            this.value = newValue;
+        }
+
+        @Override
         public final String toString() {
             return key + "=" + value;
         }
 
+        @Override
         public final int hashCode() {
             return Objects.hash(key, value);
-        }
-
-        public final void setValue(T newValue) {
-            this.value = newValue;
         }
 
         public LongBucket<T> getCollision() {
@@ -296,13 +322,21 @@ public class LongMapImpl<V> implements LongMap<V>, Iterable<LongMapImpl<V>.LongB
             return null;
         }
 
-        public T collide(LongBucket<T> anotherBucket) {
+        /**
+         * Convenience method for resizing and rehashing purposes
+         * @param anotherBucket - collision
+         */
+        public void collide(LongBucket<T> anotherBucket) {
             if (collision != null) {
-                return collision.collide(anotherBucket);
+                collision.collide(anotherBucket);
+            } else {
+                collision = anotherBucket;
             }
-
-            collision = anotherBucket;
-            return null;
         }
+    }
+
+    /*package private for testing purposes*/
+    int getCapacity() {
+        return buckets.length;
     }
 }
