@@ -1,6 +1,5 @@
 package de.comparus.opensource.longmap;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -9,7 +8,6 @@ import java.util.Random;
 import java.util.stream.LongStream;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertNull;
 
 public class LongMapImplCollisionsTest {
 
