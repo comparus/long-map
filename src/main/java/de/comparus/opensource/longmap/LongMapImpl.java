@@ -202,6 +202,7 @@ public class LongMapImpl<V> implements LongMap<V>, Iterable<LongMapImpl<V>.LongB
 
         private LongBucket<V> next;
         private int currentIndex = 0;
+
         public CollisionAwareLongBucketIterator() {
             next = getNext();
         }
@@ -247,6 +248,7 @@ public class LongMapImpl<V> implements LongMap<V>, Iterable<LongMapImpl<V>.LongB
         private final long key;
         private T value;
         private LongBucket<T> collision;
+
         private LongBucket(long key, T value) {
             this.key = key;
             this.value = value;
@@ -283,17 +285,18 @@ public class LongMapImpl<V> implements LongMap<V>, Iterable<LongMapImpl<V>.LongB
         }
 
         public T remove(long key) {
-            if (collision != null) {
-                if (collision.getKey() == key) {
-                    T removed = collision.getValue();
-                    collision = collision.getCollision();
-                    bucketCount--;
-                    return removed;
-                } else {
-                    return collision.remove(key);
-                }
+            if (collision == null) {
+                return null;
             }
-            return null;
+
+            if (collision.getKey() == key) {
+                T removed = collision.getValue();
+                collision = collision.getCollision();
+                bucketCount--;
+                return removed;
+            } else {
+                return collision.remove(key);
+            }
         }
 
         public T get(long key) {
@@ -324,6 +327,7 @@ public class LongMapImpl<V> implements LongMap<V>, Iterable<LongMapImpl<V>.LongB
 
         /**
          * Convenience method for resizing and rehashing purposes
+         *
          * @param anotherBucket - collision
          */
         public void collide(LongBucket<T> anotherBucket) {
