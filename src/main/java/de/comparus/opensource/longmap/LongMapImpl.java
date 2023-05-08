@@ -4,11 +4,13 @@ import java.lang.reflect.Array;
 import java.util.*;
 
 public class LongMapImpl<V> implements LongMap<V> {
+
     private final int DEFAULT_INITIAL_CAPACITY;
     private final float LOAD_FACTOR;
 
     private transient LongEntry<V>[] table;
     /** The total number of entries in the map.*/
+
     private int count;
     /** The table is resized when its size exceeds this threshold. The value of this field is (int)(capacity * loadFactor)*/
     private int threshold;
@@ -165,11 +167,9 @@ public class LongMapImpl<V> implements LongMap<V> {
             if (key == entry.key) {
                 if (previous == null) {
                     table[index] = table[index].next;
-                } else if (entry.next == null) {
-                    previous.next = null;
+                    break;
                 } else {
                     previous.next = entry.next;
-                    entry = null;
                     break;
                 }
             }
