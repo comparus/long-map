@@ -157,27 +157,20 @@ public class LongMapImpl<V> implements LongMap<V> {
         if (table[index] == null)
             return null;
 
-        V value = table[index].value;
-
-        if (table[index].next == null)
-            table[index] = null;
-
         LongEntry<V> previous = null;
         for (LongEntry<V> entry = table[index]; entry != null;) {
             if (key == entry.key) {
-                if (previous == null) {
+                if (previous == null)
                     table[index] = table[index].next;
-                    break;
-                } else {
+                else
                     previous.next = entry.next;
-                    break;
-                }
+                count--;
+                return entry.value;
             }
             previous = entry;
             entry = entry.next;
         }
-        count--;
-        return value;
+        return null;
     }
 
     @Override
