@@ -8,23 +8,28 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Logger;
 import java.util.stream.LongStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(TimingExtension.class)
 class LongMapImplTest {
-    private LongMap<Integer> map;
+    private static final Logger LOGGER = Logger.getLogger(TimingExtension.class.getName());
     private static final String PREFIX = "value_";
-    private final LongMapImpl<String> instance = new LongMapImpl<>();
+    private final LongMapImpl<String> stringLongMap = new LongMapImpl<>();
+    private LongMap<Integer> integerLongMap;
 
 
     @RepeatedTest(10)
     public void put_new_then_store_correctly() {
         putRandom(100);
 
-        assertEquals(100, instance.size());
-        assertEquals(256, instance.getCapacity());
+        int expectedSize = 100;
+        assertEquals(expectedSize, stringLongMap.size());
+
+        int expectedCapacity = 256;
+        assertEquals(expectedCapacity, stringLongMap.getCapacity());
     }
 
     @Test
@@ -34,15 +39,17 @@ class LongMapImplTest {
         Arrays.stream(keys)
                 .forEach(key -> {
                     String newValue = PREFIX + key;
-                    String oldValue = instance.put(key, newValue);
-                    String updatedValue = instance.get(key);
+                    String oldValue = stringLongMap.put(key, newValue);
+                    String updatedValue = stringLongMap.get(key);
 
                     assertEquals(PREFIX + key, oldValue);
                     assertEquals(newValue, updatedValue);
                 });
 
-        assertEquals(mappingsNumber, instance.size());
-        assertEquals(256, instance.getCapacity());
+        assertEquals(mappingsNumber, stringLongMap.size());
+
+        int expectedCapacity = 256;
+        assertEquals(expectedCapacity, stringLongMap.getCapacity());
     }
 
     @RepeatedTest(10)
@@ -51,7 +58,7 @@ class LongMapImplTest {
 
         Arrays.stream(keys)
                 .forEach(key -> {
-                    String value = instance.get(key);
+                    String value = stringLongMap.get(key);
                     assertNotNull(value);
                     assertEquals(PREFIX + key, value);
                 });
@@ -59,13 +66,13 @@ class LongMapImplTest {
 
     @Test
     public void get_and_map_is_empty_then_return_null() {
-        assertNull(instance.get(100L));
+        assertNull(stringLongMap.get(100L));
     }
 
     @Test
     public void get_with_wrong_key_then_return_null() {
         put(6);
-        assertNull(instance.get(7));
+        assertNull(stringLongMap.get(7));
     }
 
     @Test
@@ -77,54 +84,54 @@ class LongMapImplTest {
                 .skip(50)
                 .limit(toBeRemoved)
                 .forEach(key -> {
-                    String removed = instance.remove(key);
+                    String removed = stringLongMap.remove(key);
                     assertNotNull(removed);
                     assertEquals(PREFIX + key, removed);
-                    assertNull(instance.get(key));
+                    assertNull(stringLongMap.get(key));
                 });
 
-        assertEquals(mappingsNumber - toBeRemoved, instance.size());
+        assertEquals(mappingsNumber - toBeRemoved, stringLongMap.size());
     }
 
     @Test
     public void remove_with_wrong_key_then_no_delete() {
         put(6);
-        String removed = instance.remove(10);
+        String removed = stringLongMap.remove(10);
 
         assertNull(removed);
-        assertEquals(6, instance.size());
+        assertEquals(6, stringLongMap.size());
     }
 
     @Test
     public void empty_then_return_true_otherwise_false() {
-        assertTrue(instance.isEmpty());
+        assertTrue(stringLongMap.isEmpty());
 
         put(2);
-        assertFalse(instance.isEmpty());
+        assertFalse(stringLongMap.isEmpty());
 
-        instance.remove(0);
-        instance.remove(1);
-        assertTrue(instance.isEmpty());
-
-        put(2);
-        instance.clear();
-        assertTrue(instance.isEmpty());
+        stringLongMap.remove(0);
+        stringLongMap.remove(1);
+        assertTrue(stringLongMap.isEmpty());
 
         put(2);
-        instance.remove(0);
-        assertFalse(instance.isEmpty());
+        stringLongMap.clear();
+        assertTrue(stringLongMap.isEmpty());
+
+        put(2);
+        stringLongMap.remove(0);
+        assertFalse(stringLongMap.isEmpty());
     }
 
     @Test
     public void contains_key_then_return_true_otherwise_false() {
         long[] keys = putRandom(10);
-        assertTrue(instance.containsKey(keys[5]));
+        assertTrue(stringLongMap.containsKey(keys[5]));
 
-        instance.remove(keys[5]);
-        assertFalse(instance.containsKey(keys[5]));
+        stringLongMap.remove(keys[5]);
+        assertFalse(stringLongMap.containsKey(keys[5]));
 
-        instance.clear();
-        assertFalse(instance.containsKey(keys[5]));
+        stringLongMap.clear();
+        assertFalse(stringLongMap.containsKey(keys[5]));
     }
 
     @Test
@@ -132,46 +139,46 @@ class LongMapImplTest {
         long[] keys = putRandom(10);
         String valueOne = PREFIX + keys[3];
         String valueTwo = PREFIX + keys[7];
-        assertTrue(instance.containsValue(valueOne));
-        assertTrue(instance.containsValue(valueTwo));
-        assertFalse(instance.containsValue(PREFIX + "wrong"));
+        assertTrue(stringLongMap.containsValue(valueOne));
+        assertTrue(stringLongMap.containsValue(valueTwo));
+        assertFalse(stringLongMap.containsValue(PREFIX + "wrong"));
 
-        instance.remove(keys[3]);
-        assertFalse(instance.containsValue(valueOne));
+        stringLongMap.remove(keys[3]);
+        assertFalse(stringLongMap.containsValue(valueOne));
 
-        instance.clear();
-        assertFalse(instance.containsValue(valueTwo));
+        stringLongMap.clear();
+        assertFalse(stringLongMap.containsValue(valueTwo));
     }
 
     @Test
     public void contains_null_value_then_return_true() {
-        instance.put(100L, null);
-        assertTrue(instance.containsValue(null));
+        stringLongMap.put(100L, null);
+        assertTrue(stringLongMap.containsValue(null));
 
-        instance.put(100L, "val");
-        assertFalse(instance.containsValue(null));
+        stringLongMap.put(100L, "val");
+        assertFalse(stringLongMap.containsValue(null));
     }
 
     @Test
     public void get_keys_then_return_correct_keys_array() {
         long[] expectedKeys = Arrays.stream(putRandom(40)).sorted().toArray();
-        long[] actualKeys = Arrays.stream(instance.keys()).sorted().toArray();
-        assertEquals(instance.size(), actualKeys.length);
+        long[] actualKeys = Arrays.stream(stringLongMap.keys()).sorted().toArray();
+        assertEquals(stringLongMap.size(), actualKeys.length);
         assertArrayEquals(expectedKeys, actualKeys);
 
-        instance.remove(expectedKeys[10]);
-        instance.remove(expectedKeys[25]);
+        stringLongMap.remove(expectedKeys[10]);
+        stringLongMap.remove(expectedKeys[25]);
 
-        long[] actualUpdatedKeys = Arrays.stream(instance.keys()).sorted().toArray();
+        long[] actualUpdatedKeys = Arrays.stream(stringLongMap.keys()).sorted().toArray();
         long[] expectedUpdatedKeys = Arrays.stream(expectedKeys)
                 .filter(key -> key != expectedKeys[10] && key != expectedKeys[25])
                 .sorted()
                 .toArray();
-        assertEquals(instance.size(), expectedUpdatedKeys.length);
+        assertEquals(stringLongMap.size(), expectedUpdatedKeys.length);
         assertArrayEquals(expectedUpdatedKeys, actualUpdatedKeys);
 
-        instance.clear();
-        long[] emptyKeys = instance.keys();
+        stringLongMap.clear();
+        long[] emptyKeys = stringLongMap.keys();
         assertNull(emptyKeys);
     }
 
@@ -180,53 +187,53 @@ class LongMapImplTest {
         int mappingsNumber = 20;
         long[] keys = putRandom(mappingsNumber);
 
-        String[] actualValues = Arrays.stream(instance.values()).sorted().toArray(String[]::new);
+        String[] actualValues = Arrays.stream(stringLongMap.values()).sorted().toArray(String[]::new);
         String[] expectedValues = Arrays.stream(keys)
                 .mapToObj(key -> PREFIX + key)
                 .sorted()
                 .toArray(String[]::new);
-        assertEquals(instance.size(), actualValues.length);
+        assertEquals(stringLongMap.size(), actualValues.length);
         assertArrayEquals(expectedValues, actualValues);
 
-        instance.remove(keys[11]);
-        instance.remove(keys[19]);
+        stringLongMap.remove(keys[11]);
+        stringLongMap.remove(keys[19]);
 
-        String[] actualUpdatedValues = Arrays.stream(instance.values()).sorted().toArray(String[]::new);
+        String[] actualUpdatedValues = Arrays.stream(stringLongMap.values()).sorted().toArray(String[]::new);
         String[] expectedUpdatedValues = Arrays.stream(keys)
                 .filter(key -> key != keys[11] && key != keys[19])
                 .mapToObj(key -> PREFIX + key)
                 .sorted()
                 .toArray(String[]::new);
         assertEquals(actualUpdatedValues.length, expectedUpdatedValues.length);
-        assertEquals(instance.size(), actualUpdatedValues.length);
+        assertEquals(stringLongMap.size(), actualUpdatedValues.length);
         assertArrayEquals(expectedUpdatedValues, actualUpdatedValues);
 
-        instance.clear();
-        String[] emptyValues = instance.values();
+        stringLongMap.clear();
+        String[] emptyValues = stringLongMap.values();
         assertNull(emptyValues);
     }
 
     @Test
     public void get_size_return_correct_value() {
-        assertEquals(0, instance.size());
+        assertEquals(0, stringLongMap.size());
 
         long[] keys = putRandom(100);
-        assertEquals(100, instance.size());
+        assertEquals(100, stringLongMap.size());
 
-        instance.remove(keys[2]);
-        instance.remove(keys[10]);
-        instance.remove(keys[59]);
-        assertEquals(97, instance.size());
+        stringLongMap.remove(keys[2]);
+        stringLongMap.remove(keys[10]);
+        stringLongMap.remove(keys[59]);
+        assertEquals(97, stringLongMap.size());
 
-        instance.clear();
-        assertEquals(0, instance.size());
+        stringLongMap.clear();
+        assertEquals(0, stringLongMap.size());
     }
 
 
     private void put(long mappingsNumber) {
         LongStream
                 .range(0L, mappingsNumber)
-                .forEach(key -> instance.put(key, PREFIX + key));
+                .forEach(key -> stringLongMap.put(key, PREFIX + key));
     }
 
     private long[] putRandom(long mappingsNumber) {
@@ -234,44 +241,47 @@ class LongMapImplTest {
         return LongStream
                 .range(0L, mappingsNumber)
                 .map(l -> random.nextLong())
-                .peek(key -> instance.put(key, PREFIX + key))
+                .peek(key -> stringLongMap.put(key, PREFIX + key))
                 .toArray();
     }
 
     @Test
     void putMemoryUsage() {
-        map = new LongMapImpl<>();
+        integerLongMap = new LongMapImpl<>();
 
         Runtime runtime = Runtime.getRuntime();
-        long memory = runtime.totalMemory() - runtime.freeMemory();
+        long memoryBeforeFillingMap = runtime.totalMemory() - runtime.freeMemory();
 
         fillMap(10000);
-        long memory1 = runtime.totalMemory() - runtime.freeMemory();
-        System.out.println(memory1 - memory);
+
+        long memoryAfterFillingMap = runtime.totalMemory() - runtime.freeMemory();
+        LOGGER.info(() ->
+                String.format("Filling LongMap took %s bytes", memoryBeforeFillingMap - memoryAfterFillingMap));
     }
 
     @Test
     void putJavaHashMapMemoryUsage() {
         Map<Long, Integer> example = new HashMap<>();
         Runtime runtime = Runtime.getRuntime();
-        long memory = runtime.totalMemory() - runtime.freeMemory();
+        long memoryBeforeFillingMap = runtime.totalMemory() - runtime.freeMemory();
 
         fillJavaMap(10000, example);
-        long memory1 = runtime.totalMemory() - runtime.freeMemory();
-        System.out.println(memory1 - memory);
+        long memoryAfterFillingMap = runtime.totalMemory() - runtime.freeMemory();
+        LOGGER.info(() ->
+                String.format("Filling HashMap took %s bytes", memoryBeforeFillingMap - memoryAfterFillingMap));
     }
 
     @Test
     void empty_bucket_should_return_null() {
-        map = new LongMapImpl<>();
+        integerLongMap = new LongMapImpl<>();
 
         fillMap(10);
 
-        assertNull(map.get(2473248623L));
+        assertNull(integerLongMap.get(2473248623L));
     }
 
     private void fillMap(int amount) {
-        TestUtil.apply(amount, TestUtil.BOUND, (key, value) -> map.put(key, value));
+        TestUtil.apply(amount, TestUtil.BOUND, (key, value) -> integerLongMap.put(key, value));
     }
 
     private void fillJavaMap(int amount, Map<Long, Integer> example) {
