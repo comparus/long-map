@@ -1,5 +1,6 @@
 package de.comparus.opensource.longmap;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class LongMapImpl<V> implements LongMap<V> {
@@ -69,6 +70,7 @@ public class LongMapImpl<V> implements LongMap<V> {
         if (entry.getKey() == key) {
             //first element replaced by second
             entries[index] = entry.next;
+            count--;
             return entry.getValue();
         }
 
@@ -130,16 +132,27 @@ public class LongMapImpl<V> implements LongMap<V> {
     @Override
     public V[] values() {
         if (isEmpty()) {
-            return (V[]) Collections.emptyList().toArray();
+            return null;
         }
 
-        List<V> values = new ArrayList<>();
+        Class<?> classType = Arrays.stream(entries)
+                .filter(Objects::nonNull)
+                .findAny()
+                .get()
+                .getValue()
+                .getClass();
+        V[] arr = (V[]) Array.newInstance(classType, count);
 
+        List<V> values = new ArrayList<>();
         Arrays.stream(entries)
                 .flatMap(entry -> entryValues(entry).stream())
                 .forEach(values::add);
 
-        return (V[]) values.toArray();
+        for (int i = 0; i < values.size(); i++) {
+            arr[i] = values.get(i);
+        }
+
+        return arr;
     }
 
     @Override
@@ -153,7 +166,7 @@ public class LongMapImpl<V> implements LongMap<V> {
         count = 0;
     }
 
-    private List<V> entryValues(Entry<Long,V> entry) {
+    private List<V> entryValues(Entry<Long, V> entry) {
         List<V> values = new ArrayList<>();
 
         for (; entry != null; entry = entry.next) {
@@ -163,7 +176,7 @@ public class LongMapImpl<V> implements LongMap<V> {
         return values;
     }
 
-    private List<Long> entryKeys(Entry<Long,V> entry) {
+    private List<Long> entryKeys(Entry<Long, V> entry) {
         List<Long> keys = new ArrayList<>();
 
         for (; entry != null; entry = entry.next) {
@@ -181,6 +194,7 @@ public class LongMapImpl<V> implements LongMap<V> {
         Entry<Long, V> entry = entries[index];
 
         if (entry == null) {
+            count++;
             return addFirstEntry(index, key, value);
         }
 
@@ -211,31 +225,60 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
 
     private void resizeIfNeeded() {
-        if (entries.length * MAX_ENTRY_LENGTH * LOAD_FACTOR > count) {
+        float maxElements = entries.length * MAX_ENTRY_LENGTH * LOAD_FACTOR;
+        if (maxElements > 0 && maxElements < count) {
             resize(entries.length * 2);
         }
     }
 
     private void resize(int capacity) {
+        if (capacity < 0) {
+            throw new IllegalArgumentException("Max size has been reached");
+        }
+
+        Entry<Long, V>[] entriesOld = entries;
         clearAndResize(capacity);
 
-        //todo improve
-        for (long key : this.keys()) {
-            put(key, this.get(key));
+        for (Entry<Long, V> entry : entriesOld) {
+
+            for (; entry != null; entry = entry.next) {
+                Long key = entry.getKey();
+                V value = entry.getValue();
+
+                int newIndex = getIndex(key);
+                Entry<Long, V> lastEntry = getLastEntry(newIndex);
+
+                if (lastEntry == null) {
+                    addFirstEntry(newIndex, key, value);
+                } else {
+                    lastEntry.next = new Entry<>(key, value);
+                }
+            }
         }
     }
 
-    private static class Entry<K,V> implements Map.Entry<K,V> {
+    private Entry<Long, V> getLastEntry(int index) {
+        Entry<Long, V> entry = entries[index];
+        Entry<Long, V> entryPrevious = null;
+
+        while (entry != null) {
+            entryPrevious = entry;
+            entry = entry.next;
+        }
+        return entryPrevious;
+    }
+
+    private static class Entry<K, V> implements Map.Entry<K, V> {
 
         final K key;
         V value;
-        Entry<K,V> next;
+        Entry<K, V> next;
 
         protected Entry(K key, V value) {
             this(key, value, null);
         }
 
-        protected Entry(K key, V value, Entry<K,V> next) {
+        protected Entry(K key, V value, Entry<K, V> next) {
             this.key = key;
             this.value = value;
             this.next = next;
