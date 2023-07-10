@@ -20,15 +20,13 @@ class LongMapImplTest {
 
 	@Test
 	void testPut() {
-		int j = 0;
 		int i = -500_000;
-		boolean isAllPutted = false;
-		while (j < 1_000_000) {
-			if (longMapImpl.get(i) != null) {
-				isAllPutted = true;
+		boolean isAllPutted = true;
+		while (i < 500_000) {
+			if (longMapImpl.get(i) == null) {
+				isAllPutted = false;
 				break;
 			}
-			j++;
 			i++;
 		}
 		assertTrue(isAllPutted);
@@ -48,16 +46,14 @@ class LongMapImplTest {
 
 	@Test
 	void testRemove() {
-		int j = 0;
 		int i = -500_000;
 		boolean isAllremoved = true;
-		while (j < 1_000_000) {
+		while (i < 1_000_000) {
 			longMapImpl.remove(i);
 			if (longMapImpl.get(i) != null) {
 				isAllremoved = false;
 				break;
 			}
-			j++;
 			i++;
 		}
 		assertTrue(isAllremoved);
@@ -101,7 +97,7 @@ class LongMapImplTest {
 
 	@Test
 	void testKeys() {
-		long[] expectedKeys = new long[1000000];
+		long[] expectedKeys = new long[1_000_000];
 		int i = -500_000;
 		int j = 0;
 		while (j < expectedKeys.length) {

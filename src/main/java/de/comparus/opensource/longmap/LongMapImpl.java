@@ -86,22 +86,19 @@ public class LongMapImpl<V> implements LongMap<V> {
 		Entry<V> bucketEntry = buckets[bucketIndex];
 		if (bucketEntry == null) {
 			return null;
+		} else if (bucketEntry.getKey() == key) {
+			return bucketEntry.getValue();
 		} else {
 			Entry<V> prevEntry = null;
 			while (bucketEntry != null) {
 				prevEntry = bucketEntry;
 				bucketEntry = prevEntry.next;
-				if (bucketEntry == null) {
-					return null;
-				}
 				if (bucketEntry.getKey() == key) {
 					return bucketEntry.getValue();
-				} else {
-					return null;
 				}
-
 			}
 		}
+
 		return null;
 	}
 
