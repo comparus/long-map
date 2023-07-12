@@ -48,7 +48,11 @@ public class LongMapImpl<V> implements LongMap<V> {
 
         bucket.add(new Entry<>(key, value));
         size++;
-        return value;
+        return bucket.stream()
+                .filter(entry -> entry.key == key)
+                .findFirst()
+                .map(entry -> entry.value)
+                .orElse(null);
     }
 
     public V get(long key) {
