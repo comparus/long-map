@@ -3,14 +3,11 @@ package de.comparus.opensource.longmap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.AbstractCollection;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class LongMapImpl<V> implements LongMap<V> {
@@ -90,7 +87,7 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
 
     public boolean isEmpty() {
-        return buckets.stream().allMatch(AbstractCollection::isEmpty);
+        return size == 0;
     }
 
     public boolean containsKey(long key) {
@@ -99,6 +96,7 @@ public class LongMapImpl<V> implements LongMap<V> {
 
     public boolean containsValue(V value) {
         return buckets.stream()
+                .filter(Objects::nonNull)
                 .anyMatch(bucket -> bucket.stream()
                         .anyMatch(entry -> entry.value == value)
                 );
@@ -106,6 +104,7 @@ public class LongMapImpl<V> implements LongMap<V> {
 
     public long[] keys() {
         return buckets.stream()
+                .filter(Objects::nonNull)
                 .flatMapToLong(bucket -> bucket.stream().mapToLong(entry -> entry.key))
                 .distinct()
                 .toArray();
@@ -114,6 +113,7 @@ public class LongMapImpl<V> implements LongMap<V> {
     public V[] values() {
         //todo: might rework
         return (V[]) buckets.stream()
+                .filter(Objects::nonNull)
                 .flatMap(bucket -> bucket.stream().map(entry -> entry.value))
                 .toArray();
     }
@@ -124,9 +124,9 @@ public class LongMapImpl<V> implements LongMap<V> {
 
     public void clear() {
         buckets.stream()
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList())
-                .clear();
+                .filter(Objects::nonNull)
+                .forEach(LinkedList::clear);
+        size = 0;
     }
 
     private int getIndex(long key) {
@@ -134,7 +134,6 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
 
     // todo: add resizing
-    // todo: add tests
     @Data
     @AllArgsConstructor
     private class Entry<T> {
