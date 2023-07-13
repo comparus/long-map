@@ -163,4 +163,15 @@ class LongMapImplTest {
         assertTrue(emptyAfterClear);
     }
 
+    @Test
+    void testResize() {
+        LongMapImpl<String> testResizeMap = new LongMapImpl<>();
+        final int TEST_SIZE = 17;
+        final int EXPECTED_CAPACITY = 32;
+        IntStream.range(0, TEST_SIZE).forEach(i -> testResizeMap.put(++i, "test"));
+
+        assertEquals(TEST_SIZE, testResizeMap.size());
+        assertEquals(EXPECTED_CAPACITY, testResizeMap.getCapacity());
+    }
+
 }
