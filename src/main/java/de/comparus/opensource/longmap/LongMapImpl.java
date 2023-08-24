@@ -39,7 +39,7 @@ public class LongMapImpl<V> implements LongMap<V> {
         if (threshold < size) {
             resize();
         }
-        int index = Long.hashCode(key) & (capacity - 1);
+        int index = indexCalculation(key);
 
         if (table[index] == null) {
             table[index] = new Node(key, value);
@@ -68,7 +68,7 @@ public class LongMapImpl<V> implements LongMap<V> {
         if (isEmpty()) {
             return null;
         }
-        int index = Long.hashCode(key) & (capacity - 1);
+        int index = indexCalculation(key);
         Node<V> currentNode = table[index];
 
         while (currentNode != null) {
@@ -83,7 +83,7 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
 
     public V remove(long key) {
-        int index = Long.hashCode(key) & (capacity - 1);
+        int index = indexCalculation(key);
         if (isEmpty() || table[index] == null) {
             return null;
         }
@@ -119,7 +119,7 @@ public class LongMapImpl<V> implements LongMap<V> {
         if (isEmpty()) {
             return false;
         }
-        int index = Long.hashCode(key) & (capacity - 1);
+        int index = indexCalculation(key);
         Node<V> currentNode = table[index];
 
         while (currentNode != null) {
@@ -196,6 +196,10 @@ public class LongMapImpl<V> implements LongMap<V> {
             size = 0;
             Arrays.fill(table, null);
         }
+    }
+
+    private int indexCalculation(long key) {
+        return Long.hashCode(key) & (capacity - 1);
     }
 
     private void resize() {
